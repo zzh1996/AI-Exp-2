@@ -5,6 +5,10 @@ import numpy as np
 import word2vec
 from random import shuffle
 import itertools
+from sklearn.naive_bayes import GaussianNB
+from sklearn import linear_model
+from sklearn import svm
+from sklearn import preprocessing
 
 print 'Loading data...'
 words = open('vocabulary').read().split('\n')
@@ -21,8 +25,8 @@ for line in data:
             p = c.find(':')
             word = int(c[:p])
             freq = int(c[p + 1:])
-            if word >= 100:
-                dic[word] = freq
+            # if word >= 100:
+            dic[word] = freq
         scores.append(int(int(cols[0]) >= 7))
         comments.append(dic)
 scores = np.array(scores)
@@ -38,7 +42,6 @@ def getFeature(comment):
 
 print 'Extracting features...'
 features = np.array([getFeature(c) for c in comments])
-from sklearn import preprocessing
 
 print 'Generating train and test data'
 
@@ -57,7 +60,6 @@ traindata, trainlabel, testdata, testlabel = zip(*[gendata(i) for i in range(5)]
 
 
 def nBayesClassifier(traindata, trainlabel, testdata, testlabel, threshold):
-    from sklearn.naive_bayes import GaussianNB
     clf = GaussianNB()
     clf.fit(traindata, trainlabel)
     ypred = (clf.predict_proba(testdata)[:, 1] > threshold).astype(int)
@@ -74,7 +76,6 @@ print np.array(acc)
 
 
 def lsClassifier(traindata, trainlabel, testdata, testlabel, lambda_):
-    from sklearn import linear_model
     reg = linear_model.Ridge(lambda_)
     reg.fit(traindata, trainlabel)
     ypred = np.where(reg.predict(testdata) >= 0.5, 1, 0)
@@ -91,15 +92,17 @@ print np.array(acc)
 
 
 def softsvm(traindata, trainlabel, testdata, testlabel, sigma, C):
-    from sklearn import svm
-    clf = svm.SVC(C=C, kernel='rbf', gamma=1.0 / sigma ** 2, max_iter=1000)
+    print 'training', sigma, C
+    clf = svm.SVC(C=C, kernel='rbf', gamma=1.0 / sigma ** 2, max_iter=5000)
     clf.fit(traindata, trainlabel)
+    print 'validating', sigma, C
     ypred = clf.predict(testdata)
-    print ypred[:20]
-    print testlabel[:20]
+    # print ypred[:20]
+    # print testlabel[:20]
     accuracy = float(np.sum(ypred == testlabel)) / len(testdata)
-    print 'pred=0 test=1', float(np.sum(ypred < testlabel)) / len(testdata)
-    print 'pred=1 test=0', float(np.sum(ypred > testlabel)) / len(testdata)
+    # print accuracy
+    # print 'pred=0 test=1', float(np.sum(ypred < testlabel)) / len(testdata)
+    # print 'pred=1 test=0', float(np.sum(ypred > testlabel)) / len(testdata)
     return ypred, accuracy
 
 
@@ -121,4 +124,6 @@ d = 0.0677
 print 'softsvm...'
 acc = [[softsvm(traindata[i], trainlabel[i], testdata[i], testlabel[i], sigma, C)[1] for i in range(5)]
        for sigma, C in itertools.product([0.01 * d, 0.1 * d, d, 10 * d, 100 * d], [1, 10, 100, 1000])]
+# acc = [[softsvm(traindata[i], trainlabel[i], testdata[i], testlabel[i], sigma, C)[1] for i in range(1)]
+#        for sigma, C in itertools.product([0.1 * d], [1])]
 print np.array(acc)
