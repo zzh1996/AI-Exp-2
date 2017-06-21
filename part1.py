@@ -3,7 +3,6 @@
 
 import numpy as np
 import word2vec
-from random import shuffle
 import itertools
 from sklearn.naive_bayes import GaussianNB
 from sklearn import linear_model
@@ -111,15 +110,15 @@ print 'Calculating d...'
 # ^^^ out of memory
 
 # s=0
-# straindata=traindata.copy()
+# straindata=features.copy()
 # np.random.shuffle(straindata)
 # for i,d in enumerate(straindata):
-#     s+=((traindata-d)**2).sum()
-#     print i,s/(i+1)/len(traindata)
-# d=s/len(traindata)**2
+#     s+=((straindata-d)**2).sum()
+#     print i,s/(i+1)/len(straindata)
+# d=s/len(straindata)**2
 # print 'd=',d
 # ^^^ too slow
-d = 0.0677
+d = 0.031
 
 print 'softsvm...'
 acc = [[softsvm(traindata[i], trainlabel[i], testdata[i], testlabel[i], sigma, C)[1] for i in range(5)]
